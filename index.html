@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Business Buddy</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary-green: #075E54;
+      --light-green: #25D366;
+      --message-out-green: #DCF8C6;
+      --message-in-white: #FFFFFF;
+      --background-grey: #E5DDD5;
+      --text-dark: #333;
+      --text-light: #888;
+    }
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: var(--background-grey);
+      color: var(--text-dark);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* Header */
+    .header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      background: var(--primary-green);
+      color: #fff;
+      padding: 10px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 1000;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+    .header .header-title {
+      font-size: 20px;
+      font-weight: 500;
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    .upgrade-btn {
+      background: #FFC107; /* Gold/yellow color */
+      color: var(--primary-green);
+      border: none;
+      padding: 6px 14px;
+      border-radius: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.3s;
+    }
+    .upgrade-btn:hover {
+      background: #ffca2c;
+    }
+    .credits-counter {
+      font-size: 14px;
+      font-weight: 500;
+      background: rgba(255, 255, 255, 0.2);
+      padding: 6px 12px;
+      border-radius: 16px;
+    }
+
+    /* Main Container */
+    .container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      padding-top: 60px; /* Adjusted for header height */
+    }
+    .chatbox {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    /* Chat Messages */
+    .chat-message {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      max-width: 80%;
+    }
+    .message-content {
+      padding: 10px 14px;
+      border-radius: 12px;
+      word-wrap: break-word;
+      white-space: pre-wrap;
+      font-size: 15px;
+      line-height: 1.4;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+    .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: var(--light-green);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    /* User & Assistant specific styles */
+    .user-message {
+      align-self: flex-end;
+      flex-direction: row-reverse; /* Avatar on the right */
+    }
+    .user-message .message-content {
+      background-color: var(--message-out-green);
+    }
+    .assistant-message {
+      align-self: flex-start;
+    }
+    .assistant-message .message-content {
+      background-color: var(--message-in-white);
+    }
+    
+    .typing-indicator {
+      font-style: italic;
+      color: var(--text-light);
+      font-size: 14px;
+      padding: 0 16px 8px 66px; /* Align with assistant message */
+    }
+
+    /* Input Area */
+    .input-area {
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--background-grey);
+    }
+    .input-wrapper {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      background: #fff;
+      border-radius: 22px;
+      padding: 0 12px;
+    }
+    .input-wrapper input {
+      flex: 1;
+      padding: 12px 8px;
+      border: none;
+      border-radius: 22px;
+      outline: none;
+      font-size: 16px;
+    }
+    .input-area button {
+      padding: 12px;
+      border: none;
+      border-radius: 50%;
+      background: var(--light-green);
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+    
+    /* Popup - Re-themed */
+    .popup {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.6);
+      display: none; justify-content: center; align-items: center;
+      z-index: 2000;
+    }
+    .popup-content {
+      background: #fff; padding: 24px; border-radius: 12px;
+      max-width: 350px; text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      animation: fadeIn 0.3s ease-in-out;
+    }
+    .popup-content h3 { color: var(--primary-green); }
+    .popup-content button {
+      background: var(--light-green); color: #fff; border: none;
+      padding: 10px 20px; border-radius: 6px; cursor: pointer;
+      margin-top: 10px; font-size: 16px;
+    }
+    .popup-content .whatsapp { font-weight: bold; color: #128C7E; margin-bottom: 12px; }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <button class="upgrade-btn" onclick="openPopup()">Upgrade</button>
+    <div class="header-title">Business Buddy</div>
+    <div id="creditsCounter" class="credits-counter"></div>
+  </div>
+  
+  <div class="container">
+    <div class="chatbox" id="chatbox"></div>
+    <div class="typing-indicator" id="typingIndicator" style="display:none;">Business Buddy is typing...</div>
+    <div class="input-area">
+      <div class="input-wrapper">
+        <input id="chatInput" type="text" placeholder="Type a message">
+      </div>
+      <button id="sendButton"><i class="fas fa-paper-plane"></i></button>
+    </div>
+  </div>
+
+  <div class="popup" id="popup">
+    <div class="popup-content">
+      <h3>Upgrade Required</h3>
+      <h2>Paid plan features...</h2>
+      <p>*Unlimited credits.</p>
+      <p>*Solutions.</p>
+      <p>*Motivations.</p>
+      <p>*Proffesional Chatbot.</p>
+      <p>You can get Lifetime access only in 1999rs, no need to pay any more after this.</p>
+      <p>Your 10 free credits are over.</p>
+      <div class="whatsapp">WhatsApp: +91 8999625371</div>
+      <p>For the some error there was a problem in payment getway so for now this system is running manually.<br>For the remaining process, message us on WhatsApp.</p>
+      <button onclick="closePopup()">Close</button>
+    </div>
+  </div>
+
+  <script>
+    const chatbox = document.getElementById('chatbox');
+    const chatInput = document.getElementById('chatInput');
+    const sendButton = document.getElementById('sendButton');
+    const typingIndicator = document.getElementById('typingIndicator');
+    const popup = document.getElementById('popup');
+    const creditsCounter = document.getElementById('creditsCounter'); // Select the new counter element
+
+    let chatHistory = [];
+    let credits = 10;
+
+    // Function to update the credit display
+    function updateCredits() {
+        creditsCounter.textContent = `Credits: ${credits}`;
+    }
+
+    async function displayMessage(message, isUser) {
+        const msgElem = document.createElement('div');
+        msgElem.className = `chat-message ${isUser ? 'user-message' : 'assistant-message'}`;
+
+        const avatar = document.createElement('div');
+        avatar.className = 'avatar';
+        const icon = document.createElement('i');
+        icon.className = `fas ${isUser ? 'fa-user' : 'fa-robot'}`;
+        avatar.appendChild(icon);
+
+        const textContent = document.createElement('div');
+        textContent.className = 'message-content';
+
+        if (isUser) {
+            textContent.textContent = message;
+            msgElem.appendChild(textContent);
+            msgElem.appendChild(avatar);
+            chatbox.appendChild(msgElem);
+            chatbox.scrollTop = chatbox.scrollHeight;
+        } else {
+            msgElem.appendChild(avatar);
+            msgElem.appendChild(textContent);
+            chatbox.appendChild(msgElem);
+            chatbox.scrollTop = chatbox.scrollHeight;
+            await typeText(textContent, message);
+        }
+    }
+
+    function typeText(element, text) {
+      return new Promise((resolve) => {
+        let i = 0;
+        element.textContent = '';
+        const speed = 30;
+        function type() {
+          if (i < text.length) {
+            element.textContent += text.charAt(i);
+            i++;
+            chatbox.scrollTop = chatbox.scrollHeight;
+            setTimeout(type, speed);
+          } else resolve();
+        }
+        type();
+      });
+    }
+
+    async function callApi(prompt) {
+      typingIndicator.style.display = 'block';
+      const formattedHistory = chatHistory.map(entry => {
+        return entry.role === 'user' ? `User: ${entry.text}` : `Business Buddy: ${entry.text}`;
+      }).join('\n');
+
+      const systemPrompt = `You are Business Buddy, a helpful AI assistant. Your main goal is to provide practical and helpful business tips and advice. Please understand the user's intent even if there are spelling mistakes. You must be able to communicate and respond in multiple languages based on the user's query.\n\n${formattedHistory}\nUser: ${prompt}\nBusiness Buddy:`;
+
+      try {
+        const response = await fetch('https://backend.buildpicoapps.com/aero/run/llm-api?pk=v1-Z0FBQUFBQm5HUEtMSjJkakVjcF9IQ0M0VFhRQ0FmSnNDSHNYTlJSblE0UXo1Q3RBcjFPcl9YYy1OZUhteDZWekxHdWRLM1M1alNZTkJMWEhNOWd4S1NPSDBTWC12M0U2UGc9PQ==', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: systemPrompt })
+        });
+
+        const data = await response.json();
+        typingIndicator.style.display = 'none';
+        if (data.status === 'success') {
+          await displayMessage(data.text, false);
+          chatHistory.push({ role: 'assistant', text: data.text });
+        } else {
+          await displayMessage('Error fetching response.', false);
+        }
+      } catch (error) {
+        typingIndicator.style.display = 'none';
+        await displayMessage('API Error: ' + error.message, false);
+      }
+    }
+
+    sendButton.addEventListener('click', async () => {
+      const message = chatInput.value.trim();
+      if (!message) return;
+
+      if (credits <= 0) {
+        openPopup();
+        return;
+      }
+
+      credits--;
+      updateCredits(); // Update the display every time a credit is used
+      displayMessage(message, true);
+      chatHistory.push({ role: 'user', text: message });
+      chatInput.value = '';
+      await callApi(message);
+    });
+
+    chatInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendButton.click();
+      }
+    });
+
+    function openPopup() {
+      popup.style.display = 'flex';
+    }
+    function closePopup() {
+      popup.style.display = 'none';
+    }
+    
+    // Set the initial credit count when the page loads
+    updateCredits();
+  </script>
+</body>
+</html>
